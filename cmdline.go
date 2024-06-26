@@ -106,16 +106,40 @@ func SyntaxError(format string, args ...any) {
 	os.Exit(1)
 }
 
-// Gibt eine Fehlermeldung auf Stderr aus und beendet mit os.Exit(1)
+// Gibt eine Fehlermeldung auf [os.Stderr] aus und beendet mit os.Exit(1).
+// Siehe [ProgramMessage].
 func RuntimeError(format string, args ...any) {
 	Warn(format, args...)
 	os.Exit(1)
 }
 
-// Gibt eine Fehlermeldung im Format "Program: Fehler" auf Stderr aus.
+// Gibt eine Fehlermeldung im Format "Program: Fehler" auf [os.Stderr] aus.
+// Siehe [ProgramMessage].
 func Warn(format string, args ...any) {
+	ProgramMessage(os.Stderr, format, args...)
+}
+
+// Git eine Meldung im Format "Program: Meldung" auf [os.Stdout] aus.
+// Siehe [ProgramMessage].
+func Info(format string, args ...any) {
+	ProgramMessage(os.Stdout, format, args...)
+}
+
+// Gibt eine Meldung im Format "Program: Message" auf `fd` aus.
+// Die Meldung kann auch mehrzeilig sein. In diesem Fall wird nur in
+// der ersten Zeile der Programm-Name ausgegeben. Alle weiteren Zeilen
+// werden entsprechend eingerückt.
+func ProgramMessage(fd *os.File, format string, args ...any) {
 	msg := fmt.Sprintf(format, args...)
-	fmt.Fprintf(os.Stderr, "%s: %s\n", Program, msg)
+	lines := strings.Split(msg, "\n")
+	fmt.Fprintf(fd, "%s: %s\n", Program, lines[0])
+	if len(lines) > 1 {
+		indentLen := len([]rune(Program)) + 2
+		indent := strings.Repeat(" ", indentLen)
+		for _, line := range lines[1:] {
+			fmt.Fprintf(fd, "%s%s\n", indent, line)
+		}
+	}
 }
 
 //--------------------------------------------------------------------------------
