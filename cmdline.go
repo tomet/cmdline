@@ -34,6 +34,11 @@
 //	if cmd == "" {
 //	    cmdline.SyntaxError("Fehlendes Kommando!")
 //	}
+//
+// Kann auch gut mit github.com/tomet/ansi verwendet werden um z.B. Fehlermeldungen
+// rot auszugeben:
+//
+//   cmdline.FormatWarningFunc = ansi.Red.Bright().WrapFunc()
 package cmdline
 
 import (
@@ -49,7 +54,13 @@ var (
 	Program string
 	// der Hilfe-Text, der von PrintHelp() ausgegeben wird
 	Help string
-	// diese Funktion wird bei einem Fehler aufgerufen
+	// kann verwendet werden um Zeilen von Fehlermeldungen zu formatieren (z.B. in rot auszugeben).
+	FormatWarningFunc func(line string) string = DontFormat
+	// kann verwendet werden um Zeilen von Infomeldungen zu formatieren (z.B. in weiß ausgeben).
+	FormatInfoFunc func(line string) string = DontFormat
+	// diese Funktion wird bei einem Fehler beim Parsen (also durch
+	// (*Parser).Errorf()) aufgerufen. Normalerweise wird einfach SyntaxError aufgerufen.
+	// Siehe auch ReturnError().
 	ErrorFunc func(format string, args ...any) = SyntaxError
 	// die Funktion, die für die Option --help verwendet werden soll
 	HelpFunc func(help string) = PrintHelp
@@ -62,6 +73,12 @@ var (
 // Kann als [ErrorFunc] verwendet werden, falls Syntax-Fehler von [Parse] oder
 // [ParseArgs] zurückgegeben werden und nicht zum Programmabbruch führen sollen.
 func ReturnError(format string, args ...any) {
+}
+
+// Ist der Default-Wert für [FormatWarningFunc] und [FormatInfoFunc] und
+// liefert den übergebenen String unformatiert zurück.
+func DontFormat(s string) string {
+	return s
 }
 
 // Parst einen mehrzeiligen Help-String und trimmt führende Spaces.
@@ -116,28 +133,28 @@ func RuntimeError(format string, args ...any) {
 // Gibt eine Fehlermeldung im Format "Program: Fehler" auf [os.Stderr] aus.
 // Siehe [ProgramMessage].
 func Warn(format string, args ...any) {
-	ProgramMessage(os.Stderr, format, args...)
+	ProgramMessage(os.Stderr, FormatWarningFunc, format, args...)
 }
 
 // Git eine Meldung im Format "Program: Meldung" auf [os.Stdout] aus.
 // Siehe [ProgramMessage].
 func Info(format string, args ...any) {
-	ProgramMessage(os.Stdout, format, args...)
+	ProgramMessage(os.Stdout, FormatInfoFunc, format, args...)
 }
 
 // Gibt eine Meldung im Format "Program: Message" auf `fd` aus.
 // Die Meldung kann auch mehrzeilig sein. In diesem Fall wird nur in
 // der ersten Zeile der Programm-Name ausgegeben. Alle weiteren Zeilen
 // werden entsprechend eingerückt.
-func ProgramMessage(fd *os.File, format string, args ...any) {
+func ProgramMessage(fd *os.File, formatLineFn func(string) string, format string, args ...any) {
 	msg := fmt.Sprintf(format, args...)
 	lines := strings.Split(msg, "\n")
-	fmt.Fprintf(fd, "%s: %s\n", Program, lines[0])
+	fmt.Fprintln(fd, formatLineFn(fmt.Sprintf("%s: %s\n", Program, lines[0])))
 	if len(lines) > 1 {
 		indentLen := len([]rune(Program)) + 2
 		indent := strings.Repeat(" ", indentLen)
 		for _, line := range lines[1:] {
-			fmt.Fprintf(fd, "%s%s\n", indent, line)
+			fmt.Fprintln(fd, formatLineFn(indent + line))
 		}
 	}
 }
