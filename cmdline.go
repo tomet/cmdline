@@ -149,7 +149,7 @@ func Info(format string, args ...any) {
 func ProgramMessage(fd *os.File, formatLineFn func(string) string, format string, args ...any) {
 	msg := fmt.Sprintf(format, args...)
 	lines := strings.Split(msg, "\n")
-	fmt.Fprintln(fd, formatLineFn(fmt.Sprintf("%s: %s\n", Program, lines[0])))
+	fmt.Fprintln(fd, formatLineFn(fmt.Sprintf("%s: %s", Program, lines[0])))
 	if len(lines) > 1 {
 		indentLen := len([]rune(Program)) + 2
 		indent := strings.Repeat(" ", indentLen)
