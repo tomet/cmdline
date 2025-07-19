@@ -22,7 +22,7 @@
 //	        verbose = true
 //	    case p.IsStrOpt("file", "f"):
 //	        file = p.StrVal()
-//	     case p.IsIntOpt("level", "l", 0, 3):
+//	    case p.IsIntOpt("level", "l", 0, 3):
 //	         level = p.IntVal()
 //	    case p.IsArgN(0):
 //	        cmd = p.Arg()
