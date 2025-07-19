@@ -272,9 +272,19 @@ func (parser *Parser) Errorf(format string, args ...any) error {
 // Argumente/Optionen prüfen
 //--------------------------------------------------------------------------------
 
+func (parser *Parser) isOpt(long, short string) bool {
+	if long != "" && parser.opt == long {
+		return true
+	}
+	if short != "" && parser.opt == short {
+		return true
+	}
+	return false
+}
+
 // Prüft auf Optionen ohne Argumente.
 func (parser *Parser) IsOpt(long, short string) bool {
-	if parser.opt != long && parser.opt != short {
+	if !parser.isOpt(long, short) {
 		return false
 	}
 
@@ -291,7 +301,7 @@ func (parser *Parser) IsOpt(long, short string) bool {
 
 // Prüft auf Optionen mit einem Argument.
 func (parser *Parser) IsStrOpt(long, short string) bool {
-	if parser.opt != long && parser.opt != short {
+	if !parser.isOpt(long, short) {
 		return false
 	}
 
