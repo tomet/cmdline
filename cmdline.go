@@ -116,11 +116,11 @@ func PrintHelp(help string) {
 }
 
 // Gibt eine Fehlermeldung mit "Verwenden Sie --help ..." auf Stderr aus und
-// beendet mit os.Exit(1)
+// beendet mit os.Exit(76) (siehe `terror(1)`).
 func SyntaxError(format string, args ...any) {
 	msg := fmt.Sprintf(format, args...)
 	Warn("%s\n\nVerwenden Sie --help für weitere Hilfe!", msg)
-	os.Exit(1)
+	os.Exit(76)
 }
 
 // Gibt eine Fehlermeldung auf [os.Stderr] aus und beendet mit os.Exit(1).
